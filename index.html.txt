@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>منصة عضُد — رفيقك الصحي الذكي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
+<style>
+:root{
+  --gold:#A17136;--gold2:#C9974B;--gold-pale:#F0E4CC;
+  --teal:#1D6B6B;--teal2:#2A8F8F;--teal-pale:#D4EDEC;
+  --cream:#F4EFE6;--cream2:#EAE2D5;--cream3:#DDD3C0;
+  --brown:#3E2A12;--brown2:#6B4A2A;--brown3:#9B7450;
+  --white:#FFFFFF;
+  --danger:#C0392B;--warn:#E67E22;--safe:#2D7D4E;
+  --r8:8px;--r12:12px;--r16:16px;--r24:24px;
+  --shadow:0 4px 24px rgba(62,42,18,.10);
+  --shadow-lg:0 12px 48px rgba(62,42,18,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"Cairo",Tahoma,sans-serif;background:var(--cream);color:var(--brown);line-height:1.7;min-height:100vh}
+
+/* NAV */
+.topnav{
+  position:fixed;top:0;right:0;left:0;z-index:1000;
+  background:rgba(244,239,230,.95);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--cream3);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:64px;gap:12px;
+}
+.nav-brand{display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0}
+.nav-brand-logo{height:44px;object-fit:contain}
+.nav-links{display:flex;gap:2px}
+.nav-links button{
+  background:none;border:none;cursor:pointer;
+  font-family:"Cairo",sans-serif;font-size:13px;font-weight:600;
+  color:var(--brown2);padding:7px 11px;border-radius:var(--r8);
+  transition:background .2s,color .2s;white-space:nowrap;
+}
+.nav-links button:hover,.nav-links button.active{background:var(--gold-pale);color:var(--gold)}
+.nav-cta{background:var(--gold);color:#fff;border:none;padding:9px 18px;border-radius:var(--r12);font-family:"Cairo",sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s;white-space:nowrap;flex-shrink:0}
+.nav-cta:hover{background:var(--gold2)}
+
+/* PAGES */
+.page{display:none;padding-top:64px;min-height:100vh}
+.page.active{display:block}
+
+/* HERO */
+.hero{background:linear-gradient(150deg,#2C1A08 0%,#5C3D1E 45%,#8B6232 80%,#A17136 100%);padding:72px 60px 90px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 50%,rgba(161,113,54,.25),transparent)}
+.hero-pattern{position:absolute;inset:0;opacity:.05;background-image:repeating-linear-gradient(60deg,#fff 0,#fff 1px,transparent 1px,transparent 40px),repeating-linear-gradient(-60deg,#fff 0,#fff 1px,transparent 1px,transparent 40px)}
+.hero-inner{position:relative;z-index:1;max-width:680px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:6px 18px;margin-bottom:22px;color:rgba(255,255,255,.85);font-size:13px;font-weight:600}
+.hero h1{font-size:48px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:14px}
+.hero h1 span{color:var(--gold2)}
+.hero p{font-size:17px;color:rgba(255,255,255,.78);margin-bottom:30px;max-width:520px}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-primary{background:var(--gold);color:#fff;border:none;padding:13px 26px;border-radius:var(--r12);font-family:"Cairo",sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s,transform .15s}
+.btn-primary:hover{background:var(--gold2);transform:translateY(-2px)}
+.btn-outline{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.35);padding:13px 26px;border-radius:var(--r12);font-family:"Cairo",sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s}
+.btn-outline:hover{background:rgba(255,255,255,.22)}
+
+/* STATS */
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--cream3);border-radius:var(--r16);overflow:hidden;margin:0 60px;transform:translateY(-40px);box-shadow:var(--shadow-lg)}
+.stat-cell{background:var(--white);padding:26px 18px;text-align:center}
+.stat-cell .num{font-size:34px;font-weight:900;margin-bottom:4px}
+.stat-cell .lbl{font-size:12px;color:var(--brown3);font-weight:600}
+.stat-cell.gold .num{color:var(--gold)}
+.stat-cell.teal .num{color:var(--teal)}
+.stat-cell.safe .num{color:var(--safe)}
+.stat-cell.warn .num{color:var(--warn)}
+
+/* SECTION */
+.section{padding:48px 60px;max-width:1200px;margin:0 auto}
+.section-title{font-size:24px;font-weight:900;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.section-title .pill{font-size:12px;font-weight:700;background:var(--gold-pale);color:var(--gold);padding:3px 12px;border-radius:99px}
+.section-sub{font-size:14px;color:var(--brown3);margin-bottom:32px}
+
+/* GOALS */
+.goals-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.goal-card{background:var(--white);border-radius:var(--r16);padding:26px 22px;border:1px solid var(--cream3);box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s}
+.goal-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.goal-icon{width:50px;height:50px;border-radius:var(--r12);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px;overflow:hidden}
+.goal-icon img{width:100%;height:100%;object-fit:cover}
+.goal-card h3{font-size:15px;font-weight:800;margin-bottom:6px}
+.goal-card p{font-size:13px;color:var(--brown3);line-height:1.7}
+.goal-card.gold .goal-icon{background:var(--gold-pale)}
+.goal-card.teal .goal-icon{background:var(--teal-pale)}
+.goal-card.safe .goal-icon{background:#D4EDD9}
+
+/* ICON from icons sheet — use background-position to crop */
+.icon-crop{width:50px;height:50px;border-radius:var(--r12);overflow:hidden;margin-bottom:14px}
+.icon-crop img{width:280px;height:auto;object-fit:cover;margin-top:0}
+
+/* ACHIEVE */
+.achieve-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.achieve-card{background:linear-gradient(135deg,var(--gold-pale),var(--cream));border:1px solid var(--cream3);border-radius:var(--r16);padding:22px 18px;text-align:center}
+.achieve-num{font-size:30px;font-weight:900;color:var(--gold);margin-bottom:4px}
+.achieve-lbl{font-size:12px;color:var(--brown2);font-weight:600}
+
+/* TICKER */
+.partner-strip{background:var(--white);border-top:1px solid var(--cream3);border-bottom:1px solid var(--cream3);padding:18px 0;overflow:hidden;position:relative}
+.ticker-wrap{overflow:hidden;width:100%}
+.ticker-track{display:flex;gap:56px;align-items:center;animation:ticker-scroll 26s linear infinite;width:max-content;padding:4px 0}
+.ticker-track:hover{animation-play-state:paused}
+@keyframes ticker-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker-logo{height:52px;max-width:160px;object-fit:contain;opacity:.82;transition:opacity .2s,filter .2s;flex-shrink:0;filter:grayscale(15%)}
+.ticker-logo:hover{opacity:1;filter:none}
+
+/* FORM */
+.form-wrap{max-width:580px;margin:60px auto;background:var(--white);border-radius:var(--r24);box-shadow:var(--shadow-lg);padding:44px 40px}
+.form-header{text-align:center;margin-bottom:32px}
+.form-header img{height:60px;object-fit:contain;margin-bottom:14px}
+.form-header h2{font-size:22px;font-weight:900;margin-bottom:6px}
+.form-header p{font-size:13px;color:var(--brown3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:700;color:var(--brown2);margin-bottom:5px}
+.field input,.field select{width:100%;border:1.5px solid var(--cream3);border-radius:var(--r8);padding:10px 13px;font-family:"Cairo",sans-serif;font-size:14px;background:var(--cream);color:var(--brown);transition:border-color .2s,box-shadow .2s;outline:none}
+.field input:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(161,113,54,.15)}
+.field.full{grid-column:1/-1}
+.submit-btn{width:100%;padding:13px;border:none;border-radius:var(--r12);background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;font-family:"Cairo",sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s,transform .15s;margin-top:6px}
+.submit-btn:hover{opacity:.9;transform:translateY(-1px)}
+.divider{text-align:center;font-size:13px;color:var(--brown3);margin:14px 0}
+.login-link{text-align:center;font-size:14px;font-weight:600;color:var(--gold);cursor:pointer;text-decoration:underline}
+
+/* DASHBOARD */
+.dash-layout{display:grid;grid-template-columns:260px 1fr;gap:20px;padding:20px 28px;max-width:1280px;margin:0 auto}
+.dash-sidebar{background:var(--white);border-radius:var(--r16);padding:22px;border:1px solid var(--cream3);box-shadow:var(--shadow);height:fit-content;position:sticky;top:80px}
+.user-avatar{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--teal));display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;font-weight:900;margin:0 auto 10px}
+.user-name{text-align:center;font-weight:800;font-size:15px;margin-bottom:2px}
+.user-badge{text-align:center;font-size:11px;color:var(--brown3);margin-bottom:18px}
+.sidebar-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:var(--r8);font-size:13px;font-weight:600;cursor:pointer;transition:background .2s;margin-bottom:3px;color:var(--brown2)}
+.sidebar-item:hover{background:var(--cream)}
+.sidebar-item.active{background:var(--gold-pale);color:var(--gold)}
+
+/* hajj character avatar card */
+.hajj-avatar-card{
+  background:linear-gradient(160deg,var(--cream2) 0%,var(--cream) 100%);
+  border-radius:var(--r16);padding:16px;border:1px solid var(--cream3);
+  box-shadow:var(--shadow);text-align:center;
+  display:flex;flex-direction:column;align-items:center;
+}
+.hajj-char-img{
+  width:160px;height:220px;object-fit:contain;object-position:top;
+  filter:sepia(30%) saturate(80%) hue-rotate(10deg);
+  border-radius:var(--r12);
+}
+.hajj-status-bar{
+  display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px;
+}
+.hstatus{font-size:10px;padding:3px 9px;border-radius:99px;font-weight:700}
+.hstatus.warn{background:#FFF7ED;color:var(--warn);border:1px solid #FDE68A}
+.hstatus.danger{background:#FEF2F2;color:var(--danger);border:1px solid #FECACA}
+.hstatus.safe{background:#F0FDF4;color:var(--safe);border:1px solid #BBF7D0}
+
+.dash-main{display:flex;flex-direction:column;gap:18px}
+.dash-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.dash-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dcard{background:var(--white);border-radius:var(--r16);padding:20px;border:1px solid var(--cream3);box-shadow:var(--shadow)}
+.dcard h4{font-size:13px;font-weight:700;color:var(--brown3);margin-bottom:10px}
+.dcard h4 .dtag{float:left;font-size:10px;background:var(--cream);padding:2px 7px;border-radius:99px}
+
+/* vital bars */
+.vital-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.vital-row label{font-size:11px;font-weight:700;color:var(--brown3);min-width:100px;text-align:right}
+.vital-bar-bg{flex:1;height:7px;background:var(--cream2);border-radius:99px;overflow:hidden}
+.vital-bar-fill{height:100%;border-radius:99px}
+.vital-val{font-size:11px;font-weight:800;min-width:38px;text-align:left}
+
+/* risk circle */
+.risk-circle{width:110px;height:110px;border-radius:50%;margin:0 auto 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:conic-gradient(var(--warn) 0% 45%,var(--cream2) 45% 100%);box-shadow:inset 0 0 0 16px var(--white)}
+.risk-num{font-size:26px;font-weight:900;color:var(--warn)}
+.risk-lbl{font-size:9px;color:var(--brown3);font-weight:600}
+
+/* bar chart */
+.bar-chart{display:flex;align-items:flex-end;gap:7px;height:90px;margin-top:6px}
+.bar{flex:1;border-radius:4px 4px 0 0;position:relative}
+.bar-label{position:absolute;bottom:-19px;width:100%;text-align:center;font-size:8px;color:var(--brown3)}
+.bar-val{position:absolute;top:-17px;width:100%;text-align:center;font-size:8px;font-weight:700;color:var(--brown2)}
+
+/* tags */
+.tag-cloud{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px}
+.tag{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600}
+.tag.blue{background:#DBEAFE;color:#1D4ED8}
+.tag.purple{background:#EDE9FE;color:#5B21B6}
+.tag.gold{background:var(--gold-pale);color:var(--gold)}
+.tag.teal{background:var(--teal-pale);color:var(--teal)}
+.tag.red{background:#FEE2E2;color:var(--danger)}
+
+/* MURSHID */
+.murshid-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;padding:20px 28px;max-width:1280px;margin:0 auto}
+.map-placeholder{background:linear-gradient(135deg,#D4EDEC,#EAF5F5);border-radius:var(--r16);height:360px;border:2px dashed var(--teal2);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--teal);font-size:15px;font-weight:700;gap:10px}
+
+/* LIVE MAP */
+.live-map-wrap{border-radius:var(--r16);overflow:hidden;border:1px solid var(--cream3);box-shadow:var(--shadow)}
+#liveMap{height:360px;width:100%;background:var(--cream2)}
+.map-legend{display:flex;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--white);border-top:1px solid var(--cream3)}
+.map-legend span{font-size:11px;font-weight:700;color:#fff;padding:3px 12px;border-radius:99px}
+.map-toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;background:var(--cream);border-bottom:1px solid var(--cream3)}
+.map-toolbar button{font-family:"Cairo",sans-serif;font-size:11px;font-weight:700;border:1px solid var(--cream3);background:var(--white);color:var(--brown2);padding:6px 12px;border-radius:99px;cursor:pointer;transition:.2s}
+.map-toolbar button:hover,.map-toolbar button.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.map-status{font-size:11px;color:var(--teal);font-weight:700;padding:0 14px 8px;background:var(--white)}
+
+/* LIVE WEATHER */
+.weather-card{background:linear-gradient(135deg,#1D6B6B,#2A8F8F);border-radius:var(--r16);padding:20px 22px;color:#fff;box-shadow:var(--shadow)}
+.weather-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.weather-temp{font-size:42px;font-weight:900;line-height:1}
+.weather-loc{font-size:12px;opacity:.85;margin-top:4px}
+.weather-icon{font-size:38px}
+.weather-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.weather-stat{background:rgba(255,255,255,.14);border-radius:var(--r12);padding:10px 8px;text-align:center}
+.weather-stat .wv{font-size:15px;font-weight:800}
+.weather-stat .wl{font-size:10px;opacity:.8;margin-top:2px}
+.weather-loading{font-size:12px;opacity:.85;text-align:center;padding:10px}
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.filter-bar select,.filter-bar input{border:1.5px solid var(--cream3);border-radius:var(--r8);padding:8px 11px;font-family:"Cairo",sans-serif;font-size:12px;background:var(--white);color:var(--brown);flex:1;min-width:100px;outline:none}
+.hotel-card{background:var(--white);border-radius:var(--r12);padding:14px;border:1px solid var(--cream3);margin-bottom:10px;box-shadow:var(--shadow)}
+.hotel-card h4{font-size:13px;font-weight:800;margin-bottom:3px}
+.hotel-card .meta{font-size:11px;color:var(--brown3);margin-bottom:6px}
+.hotel-stars{color:var(--gold);font-size:12px}
+.badge-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.badge-sm{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600}
+.badge-sm.green{background:#D4EDD9;color:#1B5E3B}
+.badge-sm.blue{background:#DBEAFE;color:#1D4ED8}
+.rating-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--brown3)}
+.rating-num{font-size:16px;font-weight:900;color:var(--gold)}
+.journey-steps{position:relative;padding-right:22px}
+.journey-steps::before{content:'';position:absolute;right:8px;top:0;bottom:0;width:2px;background:var(--cream3)}
+.journey-step{position:relative;padding:0 22px 18px 0}
+.journey-step::before{content:'';position:absolute;right:2px;top:4px;width:13px;height:13px;border-radius:50%;background:var(--gold);border:2px solid var(--white);box-shadow:0 0 0 2px var(--gold);z-index:1}
+.journey-step.done::before{background:var(--safe)}
+.journey-step.active::before{background:var(--teal);box-shadow:0 0 0 4px rgba(29,107,107,.2)}
+.step-title{font-size:12px;font-weight:800;color:var(--brown)}
+.step-desc{font-size:11px;color:var(--brown3);margin-top:2px}
+.step-tag{display:inline-block;margin-top:3px;font-size:9px;padding:2px 7px;border-radius:99px}
+
+/* RAFEEQ */
+.rafeeq-layout{display:grid;grid-template-columns:1fr 380px;gap:20px;padding:20px 28px;max-width:1280px;margin:0 auto}
+.risk-dashboard{display:flex;flex-direction:column;gap:14px}
+.risk-gauge-card{background:var(--white);border-radius:var(--r16);padding:24px;border:1px solid var(--cream3);box-shadow:var(--shadow);text-align:center}
+.gauge-wrap{position:relative;width:160px;height:160px;margin:0 auto 14px}
+.gauge-svg{width:160px;height:160px}
+.gauge-val{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:34px;font-weight:900;color:var(--warn);line-height:1}
+.gauge-unit{font-size:12px;color:var(--brown3);margin-top:3px}
+.risk-indicators{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.risk-ind{background:var(--cream);border-radius:var(--r12);padding:12px;text-align:center}
+.risk-ind .ri-val{font-size:20px;font-weight:900;margin-bottom:2px}
+.risk-ind .ri-lbl{font-size:10px;color:var(--brown3);font-weight:600}
+.risk-ind.danger{background:#FEF2F2}.risk-ind.danger .ri-val{color:var(--danger)}
+.risk-ind.warn{background:#FFF7ED}.risk-ind.warn .ri-val{color:var(--warn)}
+.risk-ind.safe{background:#F0FDF4}.risk-ind.safe .ri-val{color:var(--safe)}
+.risk-ind.teal{background:var(--teal-pale)}.risk-ind.teal .ri-val{color:var(--teal)}
+
+/* CHAT */
+.chat-wrap{background:var(--white);border-radius:var(--r16);border:1px solid var(--cream3);box-shadow:var(--shadow);display:flex;flex-direction:column;height:580px}
+.chat-header{padding:14px 18px;border-bottom:1px solid var(--cream3);display:flex;align-items:center;gap:10px}
+.chat-avatar-img{width:40px;height:40px;border-radius:50%;object-fit:cover;object-position:top;filter:sepia(20%) saturate(70%)}
+.chat-info h4{font-size:14px;font-weight:800;margin-bottom:1px}
+.chat-info span{font-size:10px;color:var(--safe);font-weight:600}
+.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:82%;padding:9px 13px;border-radius:var(--r12);font-size:12px;line-height:1.65}
+.msg.bot{background:var(--cream);border-radius:var(--r12) var(--r12) var(--r12) 0;align-self:flex-start}
+.msg.user{background:var(--gold);color:#fff;border-radius:var(--r12) var(--r12) 0 var(--r12);align-self:flex-end}
+.msg-time{font-size:9px;opacity:.6;margin-top:3px}
+.quick-btns{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 6px}
+.quick-btn{background:var(--cream);border:1px solid var(--cream3);padding:5px 10px;border-radius:99px;font-family:"Cairo",sans-serif;font-size:11px;cursor:pointer;color:var(--brown2);transition:background .2s}
+.quick-btn:hover{background:var(--gold-pale);color:var(--gold)}
+.chat-input-row{padding:10px 14px;border-top:1px solid var(--cream3);display:flex;gap:7px}
+.chat-input-row input{flex:1;border:1.5px solid var(--cream3);border-radius:99px;padding:9px 14px;font-family:"Cairo",sans-serif;font-size:12px;background:var(--cream);outline:none}
+.chat-input-row input:focus{border-color:var(--gold)}
+.chat-send{width:38px;height:38px;border-radius:50%;background:var(--gold);border:none;color:#fff;font-size:15px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.chat-send:hover{background:var(--gold2)}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--brown3);animation:blink 1.2s infinite;display:inline-block;margin:0 2px}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* ABOUT */
+.about-hero{background:linear-gradient(150deg,#1D3A3A 0%,#2A5555 50%,#1D6B6B 100%);padding:72px 60px;position:relative;overflow:hidden}
+.about-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 50%,rgba(161,113,54,.2),transparent 60%)}
+.about-hero-inner{position:relative;z-index:1;max-width:680px;display:flex;align-items:center;gap:40px}
+.about-hero-text h1{font-size:40px;font-weight:900;color:#fff;margin-bottom:10px}
+.about-hero-text h1 span{color:var(--gold2)}
+.about-hero-text p{font-size:16px;color:rgba(255,255,255,.75);max-width:500px}
+.hero-hajj-img{width:160px;height:220px;object-fit:contain;object-position:top;flex-shrink:0;filter:sepia(20%) saturate(80%) brightness(0.95);border-radius:var(--r12)}
+
+.about-section{max-width:1100px;margin:0 auto;padding:48px 40px}
+.about-desc{background:var(--white);border-radius:var(--r16);padding:32px;border:1px solid var(--cream3);box-shadow:var(--shadow);font-size:14px;line-height:2;color:var(--brown2);margin-bottom:36px}
+.about-desc h3{font-size:17px;font-weight:900;color:var(--gold);margin-bottom:10px}
+
+/* TEAM */
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:36px}
+.team-card{background:var(--white);border-radius:var(--r16);padding:24px 20px;border:1px solid var(--cream3);box-shadow:var(--shadow);text-align:center;transition:transform .2s,box-shadow .2s}
+.team-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.team-avatar{width:80px;height:80px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;font-weight:900}
+.avatar-btool{background:linear-gradient(135deg,var(--gold),#7B5225)}
+.avatar-jood{background:linear-gradient(135deg,var(--teal),#1B4A4A)}
+.avatar-manal{background:linear-gradient(135deg,#8B6232,#5C3D1E)}
+.avatar-advisor{background:linear-gradient(135deg,#5B21B6,#3730A3)}
+.avatar-abdulmajid{background:linear-gradient(135deg,var(--teal2),#0F4A4A)}
+.team-card h3{font-size:16px;font-weight:900;margin-bottom:3px}
+.team-card .team-role{font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px}
+.team-card .team-title{display:inline-block;font-size:10px;background:var(--teal-pale);color:var(--teal);padding:2px 9px;border-radius:99px;margin-bottom:8px;font-weight:700}
+.team-card p{font-size:12px;color:var(--brown3);line-height:1.7}
+.skill-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-top:10px}
+.skill-tag{font-size:10px;padding:3px 9px;border-radius:99px;font-weight:600}
+.advisor-card{background:var(--white);border-radius:var(--r16);padding:26px 32px;border:1px solid var(--cream3);box-shadow:var(--shadow);display:flex;align-items:center;gap:24px;margin-bottom:28px}
+.advisor-info h3{font-size:16px;font-weight:900;margin-bottom:3px}
+.advisor-info .team-role{font-size:12px;font-weight:700;color:var(--teal);margin-bottom:7px}
+.advisor-info p{font-size:12px;color:var(--brown3);line-height:1.7}
+
+/* Hajj char as team avatar */
+.team-hajj-char{width:80px;height:80px;border-radius:50%;margin:0 auto 14px;overflow:hidden;border:3px solid var(--cream3)}
+.team-hajj-char img{width:100%;height:120%;object-fit:cover;object-position:top center;filter:sepia(40%) saturate(60%) hue-rotate(5deg)}
+
+.partners-grid-sm{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.partner-card-sm{background:var(--white);border-radius:var(--r12);padding:18px;text-align:center;border:1px solid var(--cream3);box-shadow:var(--shadow)}
+.partner-card-sm img{height:44px;object-fit:contain;margin-bottom:8px;width:100%}
+.partner-card-sm div{font-size:11px;font-weight:700;color:var(--brown)}
+
+/* PAGE HEADERS */
+.page-header{padding:32px 36px 28px;position:relative;overflow:hidden}
+.page-header h2{font-size:26px;font-weight:900;color:#fff;margin-bottom:6px}
+.page-header p{font-size:14px;color:rgba(255,255,255,.72)}
+.ph-dashboard{background:linear-gradient(135deg,#2C1A08,#6B4218)}
+.ph-murshid{background:linear-gradient(135deg,#1A3A2A,#2D5A3A)}
+.ph-rafeeq{background:linear-gradient(135deg,#1A2A4A,#2A3D6A)}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(100px);background:#1B5E3B;color:#fff;padding:12px 26px;border-radius:var(--r12);font-size:13px;font-weight:700;z-index:9999;transition:transform .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:900px){
+  .goals-grid,.achieve-row,.partners-grid-sm,.team-grid{grid-template-columns:1fr 1fr}
+  .dash-layout,.murshid-layout,.rafeeq-layout{grid-template-columns:1fr}
+  .stats-strip{grid-template-columns:1fr 1fr;margin:0 16px}
+  .form-row{grid-template-columns:1fr}
+  .hero{padding:56px 20px 76px}
+  .section,.about-section{padding:36px 18px}
+  .dash-row,.dash-row-2{grid-template-columns:1fr}
+  .advisor-card{flex-direction:column;text-align:center}
+  .about-hero-inner{flex-direction:column}
+  .nav-links button{font-size:11px;padding:6px 8px}
+}
+</style>
+</head>
+<body>
+<!-- ══ NAV ══ -->
+<nav class="topnav">
+<div class="nav-brand" onclick="showPage('home')">
+<img alt="عضُد" class="nav-brand-logo" src="images/img_0.jpg"/>
+</div>
+<div class="nav-links">
+<button class="active" onclick="showPage('home',this)">الرئيسية</button>
+<button onclick="showPage('dashboard',this)">لوحة التحكم</button>
+<button onclick="showPage('murshid',this)">مُرشد عضُد</button>
+<button onclick="showPage('rafeeq',this)">رفيق عضُد</button>
+<button onclick="showPage('about',this)">عن عضُد</button>
+</div>
+<button class="nav-cta" onclick="showPage('register')">سجّل الآن</button>
+</nav>
+<!-- ══ HOME ══ -->
+<div class="page active" id="page-home">
+<div class="hero">
+<div class="hero-pattern"></div>
+<div class="hero-inner">
+<div class="hero-eyebrow">منصة تنبؤية لذوي الهمم من ضيوف الرحمن</div>
+<h1>رفيقك الصحي <span>الذكي</span><br/>في رحلة العمر</h1>
+<p>﴿سَنَشُدُّ عَضُدَكَ بِأَخِيكَ﴾ [القصص: 35]. منصّة مخصّصة لدعم الهمم أثناء أداء مناسك الحج والعمرة — تنبؤ مبكر، رحلة مخصصة، ومساعد شخصي يرافقك في كل خطوة.</p>
+<div class="hero-btns">
+<button class="btn-primary" onclick="showPage('register')">ابدأ رحلتك الآن</button>
+<button class="btn-outline" onclick="showPage('murshid')">استكشف مُرشدك</button>
+</div>
+</div>
+</div>
+<div class="stats-strip">
+<div class="stat-cell gold"><div class="num">100,000-300,00</div><div class="lbl">حاج ومعتمر سنوياً يخدمهم عضُد</div></div>
+<div class="stat-cell warn"><div class="num">فأكثر 95%</div><div class="lbl">دقة التوجيه إلى المسار والخدمات المناسبة لاحتياجات المستفيد</div></div>
+<div class="stat-cell teal"><div class="num">أقل من دقيقة</div><div class="lbl">زمن اكتشاف احتمالية الإجهاد الحراري</div></div>
+<div class="stat-cell safe"><div class="num">15-30 دقيقة</div><div class="lbl">زمن الوصول إلى أقرب خدمة مساندة</div></div>
+</div>
+<div class="section" style="padding-top:0">
+<div class="section-title">أهداف المنصة <span class="pill">رؤيتنا</span></div>
+<div class="section-sub">نؤمن بحق كل حاج ومعتمر في رحلة صحية آمنة ومخصصة</div>
+<div class="goals-grid">
+<div class="goal-card gold"><div class="goal-icon" style="background:var(--gold-pale);font-size:22px;display:flex;align-items:center;justify-content:center">🌡</div><h3>التنبؤ المبكر بالمخاطر</h3><p>رصد مستمر لحالة الحاج الصحية مع تنبيهات استباقية قبل وقوع المشكلة.</p></div>
+<div class="goal-card teal"><div class="goal-icon" style="background:var(--teal-pale);font-size:22px;display:flex;align-items:center;justify-content:center">🗺</div><h3>رحلة مخصصة بالكامل</h3><p>مسار صحي فريد يراعي نوع الإعاقة والحالة النفسية والحركية لكل زائر.</p></div>
+<div class="goal-card safe"><div class="goal-icon" style="background:#D4EDD9;font-size:22px;display:flex;align-items:center;justify-content:center">📊</div><h3>بيانات لمتخذي القرار</h3><p>تحليلات فورية تساعد مزودي الخدمة على تحسين تجربة الزوار.</p></div>
+<div class="goal-card teal"><div class="goal-icon" style="background:var(--teal-pale);font-size:22px;display:flex;align-items:center;justify-content:center">♿</div><h3>شمولية حقيقية</h3><p>دعم جميع أنواع الإعاقة الحركية والبصرية والسمعية والذهنية.</p></div>
+<div class="goal-card gold"><div class="goal-icon" style="background:var(--gold-pale);font-size:22px;display:flex;align-items:center;justify-content:center">🤝</div><h3>شراكات استراتيجية</h3><p>ربط المستفيدين بأفضل الفنادق والحملات والباصات المتخصصة.</p></div>
+<div class="goal-card safe"><div class="goal-icon" style="background:#D4EDD9;font-size:22px;display:flex;align-items:center;justify-content:center">🧠</div><h3>مساعد ذكي تفاعلي</h3><p>رفيق عضُد — مساعد الذكاء الاصطناعي يرافقك لحظة بلحظة.</p></div>
+</div>
+</div>
+<div class="section" style="background:linear-gradient(135deg,var(--cream2),var(--cream));border-radius:var(--r24);margin:0 40px 36px">
+<div class="section-title">مميزات عضُد <span class="pill">بالأرقام</span></div>
+<div class="section-sub"> نحو تجربة حج أكثر أماناً وشمولاً</div>
+<div class="achieve-row">
+<div class="achieve-card"><div class="achieve-num">التنبؤ الاستباقي</div><div class="achieve-lbl">التنبؤ الاستباقي بمخاطر الإجهاد الحراري قبل وقوعها </div></div>
+<div class="achieve-card"><div class="achieve-num">محاكاة رحلة الزائر</div><div class="achieve-lbl">بناء مسار آمن ومخصّص وفق حالة المستخدم الصحية والسروف المحيطة به</div></div>
+<div class="achieve-card"><div class="achieve-num">5</div><div class="achieve-lbl">أنواع إعاقة مدعومة بخدمات متخصصة</div></div>
+<div class="achieve-card"><div class="achieve-num">الوصول السريع</div><div class="achieve-lbl">تمكين ذوي الهمم من ضيوف الرحمن من الوصول السريع لأقرب الخدمات والوسائل المساندة المهيأة وفق احتقاجاتهم الخاصة</div></div>
+</div>
+</div>
+<div style="padding:0 0 8px">
+<div class="section-title" style="padding:0 60px 10px">الشركاء المحتملون <span class="pill">B2G / B2B</span></div>
+<div class="partner-strip">
+<div class="ticker-wrap">
+<div class="ticker-track">
+<img alt="وزارة الصحة" class="ticker-logo" src="images/img_1.png"/>
+<img alt="نسك" class="ticker-logo" src="images/img_2.jpg"/>
+<img alt="الحرمين" class="ticker-logo" src="images/img_3.jpg"/>
+<img alt="رواحل المشاعر" class="ticker-logo" src="images/img_4.jpg"/>
+<img alt="جمعية الإعاقة الحركية" class="ticker-logo" src="images/img_5.png"/>
+<img alt="شراكة" class="ticker-logo" src="images/img_6.jpg"/>
+<img alt="وزارة الصحة" class="ticker-logo" src="images/img_7.png"/>
+<img alt="نسك" class="ticker-logo" src="images/img_8.jpg"/>
+<img alt="الحرمين" class="ticker-logo" src="images/img_9.jpg"/>
+<img alt="رواحل المشاعر" class="ticker-logo" src="images/img_10.jpg"/>
+<img alt="جمعية الإعاقة الحركية" class="ticker-logo" src="images/img_11.png"/>
+<img alt="شراكة" class="ticker-logo" src="images/img_12.jpg"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ══ REGISTER ══ -->
+<div class="page" id="page-register">
+<div class="form-wrap">
+<div class="form-header">
+<img alt="عضُد" src="images/img_13.jpg"/>
+<h2>إنشاء حساب جديد</h2>
+<p>سجّل بياناتك لتبدأ رحلتك الصحية الذكية</p>
+</div>
+<div class="form-row">
+<div class="field"><label>الاسم الكامل</label><input id="reg-name" placeholder="اسمك الكامل" type="text"/></div>
+<div class="field"><label>رقم الهاتف</label><input placeholder="05XXXXXXXX" type="tel"/></div>
+<div class="field"><label>الجنسية</label><select><option value="">اختر الجنسية</option><option>سعودي</option><option>إندونيسي</option><option>باكستاني</option><option>مصري</option><option>هندي</option><option>بنغلاديشي</option><option>نيجيري</option><option>تركي</option><option>مغربي</option><option>أخرى</option></select></div>
+<div class="field"><label>الجنس</label><select><option value="">اختر</option><option>ذكر</option><option>أنثى</option></select></div>
+<div class="field"><label>العمر</label><input max="120" min="1" placeholder="يرجى إدخال العمر" type="number"/></div>
+<div class="field"><label>نوع الإعاقة</label><select><option value="">اختر</option><option>إعاقة حركية</option><option>إعاقة بصرية</option><option>إعاقة سمعية</option><option>إعاقة ذهنية</option><option>أمراض مزمنة</option><option>كبار السن (75+)</option><option>أخرى</option></select></div>
+<div class="field full"><label>البريد الإلكتروني</label><input placeholder="example@email.com" type="email"/></div>
+<div class="field"><label>كلمة المرور</label><input placeholder="••••••••" type="password"/></div>
+<div class="field"><label>تأكيد كلمة المرور</label><input placeholder="••••••••" type="password"/></div>
+</div>
+<button class="submit-btn" onclick="handleRegister()">إنشاء الحساب والبدء</button>
+<div class="divider">لديك حساب بالفعل؟</div>
+<div class="login-link" onclick="showPage('dashboard')">تسجيل الدخول</div>
+</div>
+</div>
+<!-- ══ DASHBOARD ══ -->
+<div class="page" id="page-dashboard">
+<div class="page-header ph-dashboard">
+<h2>لوحة التحكم الذكية</h2>
+<p>بيانات شاملة بالتكامل مع الجهات الصحية (وزارة الصحة، هيئة الهلال الأحمر) عن المستفيدين والخدمات والمخاطر — مُحدّثة لحظياً</p>
+</div>
+<div class="dash-layout">
+<aside class="dash-sidebar">
+<div class="user-avatar">👥</div>
+<div class="user-name">أحمد الشمري</div>
+<div class="user-badge">إعاقة حركية — 68 سنة</div>
+<div class="sidebar-item active">لوحة المؤشرات</div>
+<div class="sidebar-item">ملفات المستفيدين</div>
+<div class="sidebar-item">إدارة الرحلات</div>
+<div class="sidebar-item">تنبيهات المخاطر</div>
+<div class="sidebar-item" onclick="showPage('murshid')">خدمات مُرشد عضُد</div>
+<div class="sidebar-item" onclick="showPage('rafeeq')">خدمات رفيق عضُد</div>
+<div class="sidebar-item">التقارير والإحصائيات</div>
+</aside>
+<main class="dash-main">
+<div class="dash-row">
+<!-- Risk -->
+<div class="dcard">
+<h4>مستوى خطر الإجهاد الحراري <span class="dtag">لحظي</span></h4>
+<div style="text-align:center;padding:6px 0">
+<div class="risk-circle"><span class="risk-num">45%</span><span class="risk-lbl">متوسط</span></div>
+<p style="font-size:11px;color:var(--brown3);margin-top:6px">الحرارة: 42°م | الرطوبة: 28%</p>
+<div class="tag-cloud" style="justify-content:center;margin-top:8px">
+<span class="tag gold">يجب توجيه الزائر بتوقّي التعرض للشمس</span>
+<span class="tag blue">يُنصح بتوجيه الفرق الصحية نحو الزائر</span>
+</div>
+</div>
+</div>
+<!-- Hajj character avatar — real illustrated image -->
+<div class="hajj-avatar-card">
+<h4 style="font-size:13px;font-weight:700;color:var(--brown3);margin-bottom:10px;text-align:center">محاكاة حالة الحاج (أحمد الشمري) الصحية</h4>
+<img alt="حالة الحاج" class="hajj-char-img" src="images/img_14.png"/>
+<div class="hajj-status-bar">
+<span class="hstatus warn">إجهاد حراري متوسط</span>
+<span class="hstatus danger">جفاف شديد محتمل</span>
+<span class="hstatus safe">ضغط الدم طبيعي</span>
+</div>
+<p style="font-size:10px;color:var(--brown3);margin-top:8px;text-align:center">المحاكاة بناءً على البيانات اللحظية للمستخدم</p>
+</div>
+<!-- Vitals -->
+<div class="dcard">
+<h4>المؤشرات الحيوية</h4>
+<div class="vital-row"><label>ضربات القلب</label><div class="vital-bar-bg"><div class="vital-bar-fill" style="width:72%;background:#E74C3C"></div></div><span class="vital-val" style="color:#E74C3C">88 bpm</span></div>
+<div class="vital-row"><label>الترطيب</label><div class="vital-bar-bg"><div class="vital-bar-fill" style="width:45%;background:var(--warn)"></div></div><span class="vital-val" style="color:var(--warn)">45%</span></div>
+<div class="vital-row"><label>حرارة الجسم</label><div class="vital-bar-bg"><div class="vital-bar-fill" style="width:78%;background:var(--warn)"></div></div><span class="vital-val" style="color:var(--warn)">37.8°</span></div>
+<div class="vital-row"><label>نشاط الحركة</label><div class="vital-bar-bg"><div class="vital-bar-fill" style="width:30%;background:var(--teal)"></div></div><span class="vital-val" style="color:var(--teal)">منخفض</span></div>
+<div class="vital-row"><label>ضغط الدم</label><div class="vital-bar-bg"><div class="vital-bar-fill" style="width:65%;background:var(--safe)"></div></div><span class="vital-val" style="color:var(--safe)">طبيعي</span></div>
+</div>
+</div>
+<div class="dash-row-2">
+<div class="dcard">
+<h4> إحصاء بنوع الإعاقة </h4>
+<div class="bar-chart">
+<div class="bar" style="background:linear-gradient(180deg,var(--gold),var(--gold2));height:85%"><span class="bar-val">42%</span><span class="bar-label">حركية</span></div>
+<div class="bar" style="background:linear-gradient(180deg,var(--teal),var(--teal2));height:30%"><span class="bar-val">15%</span><span class="bar-label">بصرية</span></div>
+<div class="bar" style="background:linear-gradient(180deg,#8B6232,#C9974B);height:22%"><span class="bar-val">11%</span><span class="bar-label">سمعية</span></div>
+<div class="bar" style="background:linear-gradient(180deg,#5B21B6,#7C3AED);height:18%"><span class="bar-val">9%</span><span class="bar-label">ذهنية</span></div>
+<div class="bar" style="background:linear-gradient(180deg,var(--danger),#E57373);height:46%"><span class="bar-val">23%</span><span class="bar-label">مزمنة</span></div>
+</div>
+<p style="font-size:10px;color:var(--brown3);margin-top:28px;text-align:center">كافة مستخدمي التطبيق</p>
+</div>
+<div class="dcard">
+<h4>التحديات المتكررة لدى كافة المستخدمين والخدمات الناقصة</h4>
+<div class="tag-cloud">
+<span class="tag red">ازدحام شديد في منى</span>
+<span class="tag red">نقص الكراسي المتحركة</span>
+<span class="tag purple">منطقة منى بحاجة إلى تهيئة المسارات وفق احتياجات ذوي الإعاقة الحركية</span>
+<span class="tag gold">ارتفاع الحرارة</span>
+<span class="tag blue">عدم توفر مرافق</span>
+<span class="tag red">نقص المراحيض المجهزة لذوي الإعاقة</span>
+<span class="tag teal">صعوبة التنقل الليلي</span>
+<span class="tag gold">منطقة مزدلفة بحاجة إلى زيادة اللافتات الإرشداية المخصّصة لاحتياجاتهم</span>
+<span class="tag purple">غياب الترجمة الإشارية</span>
+</div>
+<div style="margin-top:14px;padding:10px;background:var(--cream);border-radius:var(--r8)">
+<p style="font-size:11px;color:var(--brown2);font-weight:700">نقاط الازدحام الأعلى خطورة:</p>
+<p style="font-size:11px;color:var(--brown3);margin-top:3px">المسعى 67% | الجمرات 58% | الطواف 72%</p>
+</div>
+</div>
+</div>
+<div class="dash-row">
+<div class="dcard">
+<h4>توزيع الجنس</h4>
+<div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-top:10px">
+<div style="text-align:center">
+<svg height="64" viewbox="0 0 48 64" width="48" xmlns="http://www.w3.org/2000/svg">
+<circle cx="24" cy="12" fill="#1D6B6B" r="10"></circle>
+<rect fill="#1D6B6B" height="24" rx="4" width="20" x="14" y="26"></rect>
+<rect fill="#2A8F8F" height="20" rx="3" width="8" x="10" y="28"></rect>
+<rect fill="#2A8F8F" height="20" rx="3" width="8" x="30" y="28"></rect>
+<rect fill="#1D6B6B" height="14" rx="3" width="8" x="15" y="50"></rect>
+<rect fill="#1D6B6B" height="14" rx="3" width="8" x="25" y="50"></rect>
+</svg>
+<div style="font-size:20px;font-weight:900;color:var(--teal)">58%</div>
+<div style="font-size:11px;color:var(--brown3)">ذكور</div>
+</div>
+<div style="width:2px;height:56px;background:var(--cream3)"></div>
+<div style="text-align:center">
+<svg height="64" viewbox="0 0 48 64" width="48" xmlns="http://www.w3.org/2000/svg">
+<circle cx="24" cy="12" fill="#A17136" r="10"></circle>
+<path d="M10 30 Q10 20 24 20 Q38 20 38 30 L36 52 Q36 56 32 56 L16 56 Q12 56 12 52 Z" fill="#A17136"></path>
+<rect fill="#7B5225" height="12" rx="3" width="8" x="15" y="52"></rect>
+<rect fill="#7B5225" height="12" rx="3" width="8" x="25" y="52"></rect>
+</svg>
+<div style="font-size:20px;font-weight:900;color:var(--gold)">42%</div>
+<div style="font-size:11px;color:var(--brown3)">إناث</div>
+</div>
+</div>
+</div>
+<div class="dcard">
+<h4>خدمات صحية ذات أولوية</h4>
+<div style="display:flex;flex-direction:column;gap:7px;margin-top:6px">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--cream3)"><span style="font-size:12px">إسعاف متخصص بالكراسي</span><span class="tag red" style="font-size:10px">عاجل</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--cream3)"><span style="font-size:12px">توزيع الأدوية المبرّدة</span><span class="tag gold" style="font-size:10px">مهم</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--cream3)"><span style="font-size:12px">فحص الضغط والسكري</span><span class="tag teal" style="font-size:10px">دوري</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0"><span style="font-size:12px">غرف تبريد مخصصة</span><span class="tag blue" style="font-size:10px">متاح</span></div>
+</div>
+</div>
+<div class="dcard">
+<h4>تنبيهات نشطة | 13/12/1447هـ | قبل ٤ ثوان </h4>
+<div style="display:flex;flex-direction:column;gap:7px;margin-top:6px">
+<div style="background:#FEF2F2;border-radius:var(--r8);padding:9px 11px;font-size:11px;border-right:3px solid var(--danger)"><strong>تحذير:</strong> المعتمر(خالد) بحاجة إلى مرافق! 📍| المسعى الدور الثالث</div>
+<div style="background:#FFF7ED;border-radius:var(--r8);padding:9px 11px;font-size:11px;border-right:3px solid var(--warn)"><strong>خطر:</strong> الحاج(منى) العمر٦٩ تعاني من إعاقة حركية، تعاني من إجهاد حراري! يجب توجيه الفرق الصحية</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<!-- ══ MURSHID ══ -->
+<div class="page" id="page-murshid">
+<div class="page-header ph-murshid">
+<h2>مُرشد عضُد</h2>
+<p>دليل الحاج والمعتمر للمناطق والمسارات والفنادق، الباصات والحملات المهيأة لذوي الإعاقة الحركية</p>
+</div>
+<div class="murshid-layout">
+<div>
+<div class="dcard" style="margin-bottom:14px">
+<div class="filter-bar">
+<input placeholder="ابحث عن فندق أو حملة..." type="text"/>
+<select><option>كل الأسعار</option><option>أقل من 500 ر.س</option><option>500-1000 ر.س</option><option>أكثر من 1000</option></select>
+<select><option>كل أنواع الإعاقة</option><option>حركية</option><option>بصرية</option><option>سمعية</option></select>
+<select><option>كل المناطق</option><option>المسجد الحرام</option><option>منى</option><option>عرفات</option><option>مزدلفة</option></select>
+<button class="btn-primary" style="padding:7px 16px;font-size:12px">بحث</button>
+</div>
+</div>
+<!-- LIVE WEATHER -->
+<div class="weather-card" id="weatherCard" style="margin-bottom:14px">
+<div class="weather-loading" id="weatherLoading">⏳ جارٍ تحميل بيانات الطقس اللحظية...</div>
+</div>
+<!-- LIVE MAP -->
+<div class="live-map-wrap" style="margin-bottom:14px">
+<div class="map-toolbar">
+<button class="active" data-route="safe" onclick="setRouteMode('safe',this)">المسار الآمن</button>
+<button data-route="shortest" onclick="setRouteMode('shortest',this)">أقصر طريق</button>
+<button data-route="fastest" onclick="setRouteMode('fastest',this)">أسرع طريق</button>
+<button data-route="wheelchair" onclick="setRouteMode('wheelchair',this)">مسار الكراسي المتحركة</button>
+<button onclick="locateUser()">📍 موقعي الحالي</button>
+</div>
+<div id="liveMap"></div>
+<div class="map-status" id="mapStatus">جارٍ تحميل الخريطة...</div>
+<div class="map-legend">
+<span style="background:var(--teal)">مسار كرسي متحرك</span>
+<span style="background:var(--danger)">ازدحام عالٍ</span>
+<span style="background:var(--gold)">نقطة إسعاف</span>
+<span style="background:#3E2A12">موقعك الحالي</span>
+</div>
+</div>
+<div class="dcard">
+<h4 style="margin-bottom:14px;font-size:14px;font-weight:800">محاكاة رحلة الحج — المسار المخصص</h4>
+<div class="journey-steps">
+<div class="journey-step done"><div class="step-title">الوصول للمطار والتسجيل</div><div class="step-desc">مطار الملك عبدالعزيز — بوابة ذوي الإعاقة، خدمة الكرسي المتحرك متاحة</div><span class="step-tag" style="background:#D4EDD9;color:#1B5E3B">مكتمل</span></div>
+<div class="journey-step done"><div class="step-title">الفندق — جهة الحمل</div><div class="step-desc">فندق هيلتون مكة — 450م من المسجد، غرفة مجهزة، مصعد خاص</div><span class="step-tag" style="background:#D4EDD9;color:#1B5E3B">وصلت</span></div>
+<div class="journey-step active"><div class="step-title">طواف القدوم</div><div class="step-desc">مسار الكراسي المتحركة — الطابق الأول، أوقات الهدوء: بعد الفجر أو العشاء</div><span class="step-tag" style="background:var(--teal-pale);color:var(--teal)">جاري التخطيط</span></div>
+<div class="journey-step"><div class="step-title">السعي بين الصفا والمروة</div><div class="step-desc">الطابق الأرضي مجهز بمنحدرات، باصات خاصة من الفندق</div></div>
+<div class="journey-step"><div class="step-title">التوجه إلى منى</div><div class="step-desc">حافلة مخصصة رقم: 0555555555 — مجهزة لذوي الإعاقة الحركية</div></div>
+<div class="journey-step"><div class="step-title">الوقوف بعرفات</div><div class="step-desc">منطقة مخصصة — ظلال إضافية — خدمة طبية ميدانية</div></div>
+<div class="journey-step"><div class="step-title">رمي الجمرات</div><div class="step-desc">مسار علوي مخصص — أوقات موصى بها: ما بعد غروب الشمس</div></div>
+</div>
+</div>
+</div>
+<div>
+<h3 style="font-size:15px;font-weight:800;margin-bottom:12px;color:var(--brown)">فنادق وخدمات مخصصة</h3>
+<div class="hotel-card"><h4>فندق مكة هيلتون</h4><div class="hotel-stars">★★★★★</div><div class="meta">المسجد الحرام — 450م | ترخيص: HTL-1023</div><div class="badge-row"><span class="badge-sm green">مجهز كراسي</span><span class="badge-sm blue">مصعد خاص</span><span class="badge-sm green">طاقم طبي</span></div><div class="rating-row"><span class="rating-num">4.8</span><span>من ذوي الإعاقة (234 تقييم)</span></div><p style="font-size:10px;color:var(--brown3);margin-top:5px">"الغرف رائعة والموظفون متفهمون جداً"</p><div style="display:flex;justify-content:space-between;align-items:center;margin-top:9px"><span style="font-size:13px;font-weight:800;color:var(--gold)">من 850 ر.س/ليلة</span><button style="background:var(--teal);color:#fff;border:none;padding:5px 12px;border-radius:var(--r8);font-family:Cairo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">احجز الآن</button></div></div>
+<div class="hotel-card"><h4>شركة رواحل المشاعر</h4><div class="hotel-stars">★★★★</div><div class="meta">نقل متخصص | ترخيص: TRS-4471 | 920001234</div><div class="badge-row"><span class="badge-sm green">باصات مجهزة</span><span class="badge-sm blue">24 ساعة</span><span class="badge-sm green">مرافق صحي</span></div><div class="rating-row"><span class="rating-num">4.6</span><span>(189 تقييم)</span></div><p style="font-size:10px;color:var(--brown3);margin-top:5px">"خدمة ممتازة والسائق صبور ومتفهم"</p><div style="display:flex;justify-content:space-between;align-items:center;margin-top:9px"><span style="font-size:13px;font-weight:800;color:var(--gold)">من 200 ر.س/يوم</span><button style="background:var(--teal);color:#fff;border:none;padding:5px 12px;border-radius:var(--r8);font-family:Cairo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">احجز</button></div></div>
+<div class="hotel-card"><h4>حملة النور لذوي الاحتياجات</h4><div class="hotel-stars">★★★★★</div><div class="meta">حملة متخصصة | ترخيص: HAJ-2289 | 0555678901</div><div class="badge-row"><span class="badge-sm green">طاقم طبي كامل</span><span class="badge-sm blue">مجهزة</span><span class="badge-sm green">خدمة دينية</span></div><div class="rating-row"><span class="rating-num">4.9</span><span>(312 تقييم)</span></div><p style="font-size:10px;color:var(--brown3);margin-top:5px">"أفضل حملة لذوي الإعاقة — موظفون متدربون"</p><div style="display:flex;justify-content:space-between;align-items:center;margin-top:9px"><span style="font-size:13px;font-weight:800;color:var(--gold)">من 3,500 ر.س/شخص</span><button style="background:var(--gold);color:#fff;border:none;padding:5px 12px;border-radius:var(--r8);font-family:Cairo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">تفاصيل</button></div></div>
+</div>
+</div>
+</div>
+<!-- ══ RAFEEQ ══ -->
+<div class="page" id="page-rafeeq">
+<div class="page-header ph-rafeeq">
+<h2>رفيق عضُد</h2>
+<p>مساعدك الذكي التفاعلي - لوحة التنبؤ المبكر بمخاطر الإجهاد الحراري</p>
+</div>
+<div class="rafeeq-layout">
+<div class="risk-dashboard">
+<div class="risk-gauge-card">
+<h4 style="font-size:14px;font-weight:800;margin-bottom:14px">مؤشر الخطر الحراري</h4>
+<div class="gauge-wrap">
+<svg class="gauge-svg" viewbox="0 0 160 160">
+<circle cx="80" cy="80" fill="none" r="66" stroke="var(--cream2)" stroke-width="14"></circle>
+<circle cx="80" cy="80" fill="none" r="66" stroke="var(--warn)" stroke-dasharray="188 415" stroke-dashoffset="104" stroke-linecap="round" stroke-width="14" transform="rotate(-210 80 80)"></circle>
+<circle cx="80" cy="80" fill="var(--white)" r="52"></circle>
+</svg>
+<div class="gauge-val">45%</div>
+</div>
+<div class="gauge-unit">مستوى متوسط — ابقَ في الظل</div>
+<p style="font-size:11px;color:var(--brown3);margin-top:6px">الحرارة: 42°م | الرطوبة: 28%</p>
+</div>
+<div class="risk-indicators">
+<div class="risk-ind danger"><div class="ri-val">42°</div><div class="ri-lbl">درجة الحرارة</div></div>
+<div class="risk-ind warn"><div class="ri-val">28%</div><div class="ri-lbl">الرطوبة</div></div>
+<div class="risk-ind warn"><div class="ri-val">88</div><div class="ri-lbl">نبض القلب</div></div>
+<div class="risk-ind safe"><div class="ri-val">37.8°</div><div class="ri-lbl">حرارة الجسم</div></div>
+<div class="risk-ind teal"><div class="ri-val">67%</div><div class="ri-lbl">ازدحام الطواف</div></div>
+<div class="risk-ind safe"><div class="ri-val">طبيعي</div><div class="ri-lbl">ضغط الدم</div></div>
+</div>
+<div class="dcard">
+<h4 style="margin-bottom:10px">توقعات الساعات القادمة</h4>
+<div style="display:flex;flex-direction:column;gap:7px">
+<div style="display:flex;justify-content:space-between;padding:7px;background:var(--cream);border-radius:var(--r8);font-size:12px"><span>الآن</span><span style="color:var(--warn);font-weight:700">42°م — خطر متوسط</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px;background:#FEF2F2;border-radius:var(--r8);font-size:12px"><span>بعد ساعتين</span><span style="color:var(--danger);font-weight:700">44°م — خطر عالٍ</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px;background:var(--cream);border-radius:var(--r8);font-size:12px"><span>بعد المغرب</span><span style="color:var(--safe);font-weight:700">36°م — آمن</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px;background:var(--cream);border-radius:var(--r8);font-size:12px"><span>الفجر</span><span style="color:var(--safe);font-weight:700">29°م — مثالي</span></div>
+</div>
+<div style="margin-top:10px;padding:10px;background:linear-gradient(135deg,var(--gold-pale),var(--cream));border-radius:var(--r8)">
+<p style="font-size:11px;font-weight:700;color:var(--gold)">توصية رفيق عضُد:</p>
+<p style="font-size:11px;color:var(--brown2);margin-top:3px">أجِّل طوافك لما بعد المغرب — الحرارة مناسبة والازدحام أقل بـ 40%</p>
+</div>
+</div>
+</div>
+<div class="chat-wrap">
+<div class="chat-header">
+<img alt="رفيق عضُد" class="chat-avatar-img" src="images/img_15.png"/>
+<div class="chat-info"><h4>رفيق عضُد</h4><span>متصل الآن — ذكاء اصطناعي</span></div>
+</div>
+<div class="chat-messages" id="chatMessages">
+<div class="msg bot">مرحباً! أنا رفيق عضُد، مساعدك الذكي طوال رحلتك.<br/>كيف يمكنني مساعدتك اليوم؟<div class="msg-time">10:30 ص</div></div>
+<div class="msg bot"><strong>تنبيه:</strong> درجة الحرارة سترتفع خلال ساعتين. أنصحك بالبقاء في الظل وشرب الماء الآن.<div class="msg-time">10:30 ص</div></div>
+</div>
+<div class="quick-btns">
+<button class="quick-btn" onclick="sendQuickMsg(this)">أفضل وقت للطواف؟</button>
+<button class="quick-btn" onclick="sendQuickMsg(this)">ما علامات الإجهاد؟</button>
+<button class="quick-btn" onclick="sendQuickMsg(this)">أقرب نقطة إسعاف</button>
+</div>
+<div class="chat-input-row">
+<input id="chatInput" onkeydown="if(event.key==='Enter')sendChat()" placeholder="اكتب سؤالك هنا..." type="text"/>
+<button class="chat-send" onclick="sendChat()">➤</button>
+</div>
+</div>
+</div>
+</div>
+<!-- ══ ABOUT ══ -->
+<div class="page" id="page-about">
+<div class="about-hero">
+<div class="about-hero-inner">
+<img alt="حاج" class="hero-hajj-img" src="images/img_16.png"/>
+<div class="about-hero-text">
+<h1>عن منصة <span>عضُد</span></h1>
+<p>قصة منصة ولدت من رحم الاهتمام بضيوف الرحمن من ذوي الإعاقة — وفريق يؤمن بأن التقنية يمكن أن تكون ذراعاً داعمة لكل حاج ومعتمر.</p>
+</div>
+</div>
+</div>
+<div class="about-section">
+<div class="about-desc">
+<h3>ما هي منصة عضُد؟</h3>
+<p>
+<strong>عضُد</strong> منصة ذكاء اصطناعي تنبؤية (SaaS) مصممة لدعم الحجاج والمعتمرين من ذوي الإعاقة وذوي الاحتياجات الخاصة وكبار السن، مستوحاة من الآية الكريمة: <strong>{سَنَشُدُّ عَضُدَكَ بِأَخِيكَ}</strong>.
+      </p><br/>
+<p>تقدم رحلة صحية مخصصة تراعي الجانب الصحي والنفسي والاجتماعي والحركي، مع التنبؤ المبكر بمخاطر الإجهاد الحراري عبر تحليل بيانات الطقس اللحظية وخرائط الازدحام والسجلات الصحية.</p>
+</div>
+<h2 class="section-title" style="margin-bottom:20px">فريق عضُد <span class="pill">خبرات متكاملة، هدف واحد</span></h2>
+<div class="team-grid">
+<div class="team-card">
+<div class="team-avatar avatar-btool">ب</div>
+<div class="team-title">الحوكمة وإدارة المخاطر والالتزام - UI/UX - الأنظمة المالية والضريبية </div>
+<h3>بتول عبدالمحسن الزهراني</h3>
+<div class="team-role">مصممة الواجهة · مطوّرة · أخصائية قانونية</div>
+<p>باحث اجتماعية وقانونية، متطوعة في خدمة صيوف الرحمن، حاصدة على جوائز محلية ودولية.</p>
+<div class="skill-tags">
+<span class="skill-tag" style="background:var(--gold-pale);color:var(--gold)">UI/UX</span>
+<span class="skill-tag" style="background:var(--teal-pale);color:var(--teal)">مالية</span>
+<span class="skill-tag" style="background:#EDE9FE;color:#5B21B6">قانون</span>
+</div>
+</div>
+<div class="team-card">
+<div class="team-avatar avatar-jood">ج</div>
+<div class="team-title">قانون + تواصل</div>
+<h3>جود عادل الحربي</h3>
+<div class="team-role">مسؤولة الشراكات · تسويق · قانونية</div>
+<p> رائدة الأعمال، تتولى بناء الشراكات مع الجهات الحكومية والتواصل الفعّال.</p>
+<div class="skill-tags">
+<span class="skill-tag" style="background:var(--teal-pale);color:var(--teal)">شراكات</span>
+<span class="skill-tag" style="background:var(--gold-pale);color:var(--gold)">تسويق</span>
+<span class="skill-tag" style="background:#EDE9FE;color:#5B21B6">قانون</span>
+</div>
+</div>
+<div class="team-card">
+<div class="team-avatar avatar-manal">م</div>
+<div class="team-title">اجتماعي + ريادة</div>
+<h3>منال معضد الفهمي</h3>
+<div class="team-role">الابتكار · الذكاء الاصطناعي</div>
+<p>أخصائية اجتماعية ورائدة أعمال، تتولى تطوير العلاقات المجتمعية وضمان وصول الخدمة للفئة المتسهدفة وربط المنصة بالذكاء الاصطناعي، .</p>
+<div class="skill-tags">
+<span class="skill-tag" style="background:var(--gold-pale);color:var(--gold)">الذكاء الاصطناعي</span>
+<span class="skill-tag" style="background:var(--teal-pale);color:var(--teal)">رائدة أعمال</span>
+<span class="skill-tag" style="background:#D4EDD9;color:#1B5E3B">باحثة</span>
+</div>
+</div>
+</div>
+<!-- Abdulmajid -->
+<h2 class="section-title" style="margin-bottom:16px">المستشار التقني والمتطوع الميداني</h2>
+<div class="advisor-card">
+<div class="team-avatar avatar-abdulmajid" style="width:80px;height:80px;flex-shrink:0;font-size:28px">ع</div>
+<div class="advisor-info">
+<h3>عبدالمجيد عبدالمحسن الزهراني</h3>
+<div class="team-role">متخصص نظم معلوماتية صحية وبرمجة — متطوع خدمة الحجاج</div>
+<p>متخصص في النظم المعلوماتية الصحية والبرمجة، يمتلك خبرة تتجاوز 9 أعوام في مجال التطوع في خدمة الحجاج والمعتمرين ميدانياً. يُضيف لفريق عضُد بُعداً نادراً: الجمع بين العمق التقني والمعرفة الميدانية الفعلية باحتياجات ضيوف الرحمن، مما يجعله ركيزة أساسية في توجيه قرارات التطوير نحو الواقع.</p>
+<div class="skill-tags" style="justify-content:flex-start;margin-top:8px">
+<span class="skill-tag" style="background:var(--teal-pale);color:var(--teal)">نظم معلومات صحية</span>
+<span class="skill-tag" style="background:#EDE9FE;color:#5B21B6">برمجة</span>
+<span class="skill-tag" style="background:var(--gold-pale);color:var(--gold)">تطوع في خدمة الحجاج +9 سنوات</span>
+<span class="skill-tag" style="background:#D4EDD9;color:#1B5E3B">خبرة ميدانية</span>
+</div>
+</div>
+</div>
+<!-- Software advisor -->
+<div class="advisor-card">
+<div class="team-avatar avatar-advisor" style="width:80px;height:80px;flex-shrink:0;font-size:26px">م</div>
+<div class="advisor-info">
+<h3>المستشار البرمجي — عضُد</h3>
+<div class="team-role">مهندس برمجيات وباحث في الذكاء الاصطناعي</div>
+<p>بكالوريوس في هندسة البرمجيات، ناشر لأكثر من عشر أوراق بحثية، متخصص في تسريع المشاريع عبر التقنيات الحديثة. يشرف على خوارزميات التنبؤ الحراري ونماذج الذكاء الاصطناعي.</p>
+<div class="skill-tags" style="justify-content:flex-start;margin-top:8px">
+<span class="skill-tag" style="background:#EDE9FE;color:#5B21B6">Machine Learning</span>
+<span class="skill-tag" style="background:var(--teal-pale);color:var(--teal)">AI Research</span>
+<span class="skill-tag" style="background:var(--gold-pale);color:var(--gold)">Software Engineering</span>
+</div>
+</div>
+</div>
+<h2 class="section-title" style="margin-bottom:16px">الشركاء المحتملون</h2>
+<div class="partners-grid-sm">
+<div class="partner-card-sm"><img alt="وزارة الصحة" src="images/img_17.png"/><div>وزارة الصحة</div></div>
+<div class="partner-card-sm"><img alt="نسك" src="images/img_18.jpg"/><div>نسك</div></div>
+<div class="partner-card-sm"><img alt="الحرمين" src="images/img_19.jpg"/><div>الهيئة العامة للعناية بالحرمين</div></div>
+<div class="partner-card-sm"><img alt="رواحل" src="images/img_20.jpg"/><div>رواحل المشاعر</div></div>
+<div class="partner-card-sm"><img alt="حركية" src="images/img_21.png"/><div>جمعية الإعاقة الحركية للكبار</div></div>
+<div class="partner-card-sm"><img alt="شراكة" src="images/img_22.jpg"/><div>شراكة — ذوو الإعاقة والاحتياجات الخاصة</div></div>
+</div>
+</div>
+</div>
+<div class="toast" id="toast">تم تسجيل حسابك بنجاح! مرحباً بك في عضُد</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-links button').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById('page-'+id);
+  if(el)el.classList.add('active');
+  if(btn)btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function handleRegister(){
+  const name=document.getElementById('reg-name').value;
+  if(!name){alert('من فضلك أدخل اسمك الكامل');return;}
+  const t=document.getElementById('toast');
+  t.textContent='مرحباً '+name+'! تم إنشاء حسابك في عضُد';
+  t.classList.add('show');
+  setTimeout(()=>{t.classList.remove('show');showPage('dashboard');},2500);
+}
+function sendQuickMsg(btn){document.getElementById('chatInput').value=btn.textContent;sendChat();}
+const chatMessages=document.getElementById('chatMessages');
+let chatHistory=[];
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value='';
+  const um=document.createElement('div');
+  um.className='msg user';
+  um.innerHTML=text+'<div class="msg-time">'+getTime()+'</div>';
+  chatMessages.appendChild(um);
+  chatMessages.scrollTop=chatMessages.scrollHeight;
+  chatHistory.push({role:'user',content:text});
+  const typing=document.createElement('div');
+  typing.className='msg bot';
+  typing.innerHTML='<span class="typing"><span></span><span></span><span></span></span>';
+  chatMessages.appendChild(typing);
+  chatMessages.scrollTop=chatMessages.scrollHeight;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:1000,
+        system:'أنت "رفيق عضُد" — مساعد ذكاء اصطناعي متخصص في دعم الحجاج والمعتمرين من ذوي الإعاقة. تجيب على أسئلة الحج والصحة والتنقل في مكة المكرمة. الحرارة الحالية 42 درجة مئوية. ردودك مختصرة ودافئة بالعربية فقط.',
+        messages:chatHistory
+      })
+    });
+    const d=await r.json();
+    const reply=d.content?.[0]?.text||'عذراً، حدث خطأ. أعد المحاولة.';
+    chatHistory.push({role:'assistant',content:reply});
+    typing.innerHTML=reply+'<div class="msg-time">'+getTime()+'</div>';
+  }catch(e){
+    typing.innerHTML='حدث خطأ في الاتصال.<div class="msg-time">'+getTime()+'</div>';
+  }
+  chatMessages.scrollTop=chatMessages.scrollHeight;
+}
+function getTime(){return new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'})}
+
+/* ========================================================
+   LIVE WEATHER — Open-Meteo (free, no API key required)
+   ======================================================== */
+const MECCA={lat:21.4225,lon:39.8262};
+async function loadWeather(lat,lon,label){
+  const card=document.getElementById('weatherCard');
+  if(!card)return;
+  try{
+    const url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+
+      '&current=temperature_2m,relative_humidity_2m,wind_speed_10m,uv_index&hourly=uv_index&timezone=auto';
+    const aqUrl='https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+lat+'&longitude='+lon+'&current=us_aqi';
+    const [wRes,aRes]=await Promise.all([fetch(url),fetch(aqUrl).catch(()=>null)]);
+    const w=await wRes.json();
+    let aqi='—';
+    if(aRes){try{const a=await aRes.json();aqi=a.current?.us_aqi??'—';}catch(e){}}
+    const t=w.current.temperature_2m, h=w.current.relative_humidity_2m,
+          ws=w.current.wind_speed_10m, uv=w.current.uv_index;
+    let icon='☀️'; if(t>40)icon='🔥'; else if(uv>8)icon='🌡️'; else if(h>60)icon='🌥️';
+    card.innerHTML=
+      '<div class="weather-head">'+
+        '<div><div class="weather-temp">'+Math.round(t)+'°م</div>'+
+        '<div class="weather-loc">'+(label||'موقعك الحالي')+' — تحديث لحظي</div></div>'+
+        '<div class="weather-icon">'+icon+'</div>'+
+      '</div>'+
+      '<div class="weather-grid">'+
+        '<div class="weather-stat"><div class="wv">'+Math.round(h)+'%</div><div class="wl">الرطوبة</div></div>'+
+        '<div class="weather-stat"><div class="wv">'+Math.round(ws)+' كم/س</div><div class="wl">سرعة الرياح</div></div>'+
+        '<div class="weather-stat"><div class="wv">'+(uv!=null?uv.toFixed(1):'—')+'</div><div class="wl">مؤشر UV</div></div>'+
+        '<div class="weather-stat"><div class="wv">'+aqi+'</div><div class="wl">جودة الهواء</div></div>'+
+      '</div>';
+    window.__lastWeather={t,h,ws,uv,aqi};
+    updateRiskFromWeather(t,h,uv);
+  }catch(e){
+    card.innerHTML='<div class="weather-loading">تعذّر تحميل بيانات الطقس حالياً. سيُعاد المحاولة...</div>';
+    setTimeout(()=>loadWeather(lat,lon,label),8000);
+  }
+}
+function updateRiskFromWeather(t,h,uv){
+  // تحديث لحظي لمستوى خطر الإجهاد الحراري في لوحة التحكم بناءً على الطقس الحقيقي
+  const circle=document.querySelector('.risk-num');
+  const lbl=document.querySelector('.risk-lbl');
+  if(!circle)return;
+  let score=Math.min(100,Math.max(0,Math.round((t-25)*3 + (uv||0)*2 + (h<20?10:0))));
+  circle.textContent=score+'%';
+  if(lbl){
+    if(score>70){lbl.textContent='مرتفع';lbl.style.color='var(--danger)';}
+    else if(score>40){lbl.textContent='متوسط';lbl.style.color='var(--warn)';}
+    else{lbl.textContent='منخفض';lbl.style.color='var(--safe)';}
+  }
+}
+loadWeather(MECCA.lat,MECCA.lon,'المسجد الحرام، مكة المكرمة');
+
+/* ========================================================
+   LIVE MAP — Leaflet + OpenStreetMap (free, no API key)
+   ======================================================== */
+let liveMap,userMarker,routeLine,currentRouteMode='safe';
+const HAJJ_SITES=[
+  {name:'المسجد الحرام',lat:21.4225,lon:39.8262,type:'landmark'},
+  {name:'منى',lat:21.4133,lon:39.8933,type:'landmark'},
+  {name:'عرفات',lat:21.3556,lon:39.9842,type:'landmark'},
+  {name:'مزدلفة',lat:21.3831,lon:39.9361,type:'landmark'},
+  {name:'نقطة إسعاف 1 — المسعى',lat:21.4231,lon:39.8268,type:'medical'},
+  {name:'نقطة إسعاف 2 — الجمرات',lat:21.4222,lon:39.8740,type:'medical'},
+  {name:'فندق هيلتون مكة',lat:21.4189,lon:39.8255,type:'hotel'}
+];
+const CONGESTION_ZONES=[
+  {name:'المسعى',lat:21.4231,lon:39.8268,level:67},
+  {name:'الجمرات',lat:21.4222,lon:39.8740,level:58},
+  {name:'الطواف',lat:21.4225,lon:39.8262,level:72}
+];
+function initLiveMap(){
+  if(liveMap)return;
+  const el=document.getElementById('liveMap');
+  if(!el || typeof L==='undefined')return;
+  liveMap=L.map('liveMap',{zoomControl:true}).setView([MECCA.lat,MECCA.lon],15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,attribution:'© OpenStreetMap'
+  }).addTo(liveMap);
+
+  HAJJ_SITES.forEach(s=>{
+    const color = s.type==='medical' ? '#A17136' : s.type==='hotel' ? '#1D6B6B' : '#3E2A12';
+    L.circleMarker([s.lat,s.lon],{radius:8,color:color,fillColor:color,fillOpacity:.85,weight:2})
+      .addTo(liveMap).bindPopup('<b>'+s.name+'</b>');
+  });
+
+  CONGESTION_ZONES.forEach(z=>{
+    const c = z.level>65 ? '#C0392B' : z.level>50 ? '#E67E22' : '#2D7D4E';
+    L.circle([z.lat,z.lon],{radius:120,color:c,fillColor:c,fillOpacity:.25,weight:1})
+      .addTo(liveMap).bindPopup('<b>'+z.name+'</b><br/>كثافة الازدحام: '+z.level+'%');
+  });
+
+  drawRoute(currentRouteMode);
+  document.getElementById('mapStatus').textContent='الخريطة جاهزة — اضغط على أي نقطة لعرض التفاصيل';
+}
+function drawRoute(mode){
+  if(!liveMap)return;
+  if(routeLine)liveMap.removeLayer(routeLine);
+  // مسارات تجريبية مبنية على إحداثيات حقيقية بين المسجد الحرام ومنى، تتغيّر حسب نوع المسار المختار
+  const routes={
+    safe:[[21.4225,39.8262],[21.4205,39.8420],[21.4160,39.8650],[21.4133,39.8933]],
+    shortest:[[21.4225,39.8262],[21.4170,39.8600],[21.4133,39.8933]],
+    fastest:[[21.4225,39.8262],[21.4250,39.8500],[21.4190,39.8750],[21.4133,39.8933]],
+    wheelchair:[[21.4225,39.8262],[21.4210,39.8400],[21.4185,39.8600],[21.4150,39.8800],[21.4133,39.8933]]
+  };
+  const colors={safe:'#2D7D4E',shortest:'#1D6B6B',fastest:'#A17136',wheelchair:'#2A8F8F'};
+  routeLine=L.polyline(routes[mode],{color:colors[mode],weight:5,opacity:.85,dashArray: mode==='wheelchair'?'8,6':null}).addTo(liveMap);
+  liveMap.fitBounds(routeLine.getBounds(),{padding:[30,30]});
+}
+function setRouteMode(mode,btn){
+  currentRouteMode=mode;
+  document.querySelectorAll('.map-toolbar button[data-route]').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  drawRoute(mode);
+  const labels={safe:'المسار الآمن (يتجنب الازدحام)',shortest:'أقصر طريق',fastest:'أسرع طريق',wheelchair:'مسار مخصص للكراسي المتحركة'};
+  document.getElementById('mapStatus').textContent='تم عرض: '+labels[mode];
+}
+function locateUser(){
+  const status=document.getElementById('mapStatus');
+  if(!navigator.geolocation){status.textContent='المتصفح لا يدعم تحديد الموقع';return;}
+  status.textContent='جارٍ تحديد موقعك...';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude:lat,longitude:lon}=pos.coords;
+    if(userMarker)liveMap.removeLayer(userMarker);
+    userMarker=L.circleMarker([lat,lon],{radius:9,color:'#3E2A12',fillColor:'#A17136',fillOpacity:1,weight:3})
+      .addTo(liveMap).bindPopup('موقعك الحالي').openPopup();
+    liveMap.setView([lat,lon],16);
+    status.textContent='تم تحديد موقعك الحالي بنجاح';
+    loadWeather(lat,lon,'موقعك الحالي');
+  },()=>{
+    status.textContent='تعذّر الوصول للموقع — تأكد من السماح بإذن الموقع';
+  },{enableHighAccuracy:true,timeout:8000});
+}
+// تهيئة الخريطة عند فتح صفحة "مرشد عضُد" أو عند تحميل الصفحة إن كانت نشطة
+const origShowPage=showPage;
+showPage=function(id,btn){
+  origShowPage(id,btn);
+  if(id==='murshid')setTimeout(initLiveMap,80);
+};
+document.addEventListener('DOMContentLoaded',()=>{
+  if(document.getElementById('page-murshid')?.classList.contains('active')){
+    setTimeout(initLiveMap,80);
+  }
+});
+</script>
+</body>
+</html>
